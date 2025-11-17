@@ -1,10 +1,25 @@
-const { deduplicate } = require("../src/dedupe");
+const { deduplicate, resolveDuplicate, logDifferences } = require("../src/dedupe");
+
+describe("helper functions", () => {
+  it("resolveDuplicate prefers newer entryDate", () => {
+    const oldRec = { entryDate: "2020-01-01T00:00:00Z" };
+    const newRec = { entryDate: "2020-01-02T00:00:00Z" };
+    expect(resolveDuplicate(oldRec, newRec)).toBe(true);
+  });
+
+  it("logDifferences detects field changes", () => {
+    const a = { firstName: "John", lastName: "Smith" };
+    const b = { firstName: "Jane", lastName: "Smith" };
+    const diffs = logDifferences(a, b);
+    expect(diffs).toEqual([{ field: "firstName", from: "John", to: "Jane" }]);
+  });
+});
 
 describe("deduplication", () => {
   it("handles empty dataset", () => {
-    const { dedupedLeads, auditTrail } = deduplicate([]);
+    const { dedupedLeads, changeLog } = deduplicate([]);
     expect(dedupedLeads.length).toBe(0);
-    expect(auditTrail.length).toBe(0);
+    expect(changeLog.length).toBe(0);
   });
 
   it("deduplicates by _id preferring newest", () => {
@@ -51,7 +66,6 @@ describe("deduplication", () => {
       { _id: "12", email: "conflict@test.com", firstName: "Gamma", lastName: "Three", address: "Addr3", entryDate: "2022-01-03T00:00:00Z" }
     ];
     const { dedupedLeads } = deduplicate(sample);
-    // Latest record by date wins, even if conflict between id and email
     expect(dedupedLeads.find(r => r.email === "conflict@test.com").firstName).toBe("Gamma");
   });
 });
