@@ -1,0 +1,16 @@
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+
+# Logs
+*.log
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+
+# Jest snapshots
+__snapshots__/

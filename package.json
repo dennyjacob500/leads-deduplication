@@ -1,0 +1,11 @@
+{
+  "name": "adobe-leads-dedupe",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node src/index.js sample/leads.json",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}
