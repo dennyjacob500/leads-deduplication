@@ -1,5 +1,4 @@
 const fs = require("fs");
-
 /**
  * Decide whether the incoming record should replace the existing one.
  * Rule: newest date wins; if tie, later record in list wins.
@@ -14,9 +13,20 @@ function resolveDuplicate(existing, incoming) {
 }
 
 /**
+ * Apply replacement: update the deduped list and maps with the incoming record.
+ */
+function applyReplacement(dedupedLeads, existing, incoming, seenIds, seenEmails) {
+  const pos = dedupedLeads.indexOf(existing);
+  if (pos !== -1) dedupedLeads[pos] = incoming;
+
+  seenIds.set(incoming._id, incoming);
+  seenEmails.set(incoming.email, incoming);
+}
+
+/**
  * Compute field-level differences between two records.
  */
-function computeChanges(existing, incoming) {
+function logDifferences(existing, incoming) {
   const changes = [];
   Object.keys(incoming).forEach((key) => {
     if (existing[key] !== incoming[key]) {
@@ -56,7 +66,7 @@ function deduplicate(records) {
     }
 
     if (resolveDuplicate(existing, record)) {
-      const changes = computeChanges(existing, record);
+      const changes = logDifferences(existing, record);
       changeLog.push({
         duplicateKey,
         sourceRecord: existing,
@@ -64,11 +74,7 @@ function deduplicate(records) {
         changes,
       });
 
-      const pos = dedupedLeads.indexOf(existing);
-      if (pos !== -1) dedupedLeads[pos] = record;
-
-      seenIds.set(_id, record);
-      seenEmails.set(email, record);
+      applyReplacement(dedupedLeads, existing, record, seenIds, seenEmails);
     } else {
       changeLog.push({
         duplicateKey,
@@ -82,4 +88,4 @@ function deduplicate(records) {
   return { dedupedLeads, changeLog };
 }
 
-module.exports = { deduplicate };
+module.exports = { deduplicate, resolveDuplicate, applyReplacement, logDifferences };
